@@ -1,0 +1,33 @@
+.redBorder {
+  border-bottom: 1px solid;
+  border-color: red !important;
+}
+
+.greenBorder {
+  border-bottom: 1px solid;
+  border-color: green !important;
+}
+
+.video-container {
+  position: relative;
+}
+
+.triangle-icon-red {
+  position: absolute;
+  bottom: 0.13em;
+  left: 0.75em;
+  width: 0;
+  height: 0;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid red;
+}
+
+.triangle-icon-green {
+  position: absolute;
+  bottom: 0.13em;
+  left: 0.75em;
+  width: 0;
+  height: 0;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid green;
+}

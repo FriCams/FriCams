@@ -106,13 +106,29 @@ onMounted(() => {
     })
 
     tabEl.addEventListener('click', event => {
-      if (event.target.getAttribute('id') == "cameras"){
+      if (event.target.getAttribute('id') == "cameras") {
         refreshStreams(0)
       }
     })
   })
 
+  addEventListenerToStreams()
 
+})
+
+//List of streaming cams on Cameras page
+function getStreamingCams() {
+  for (let index = 0; index < streams.length; index++) {
+    const element = streams[index];
+    //console.log(" element "+JSON.stringify(element))
+    if (element.show == true) {
+      streaming[element.cam] = false
+    }
+
+  }
+}
+
+function addEventListenerToStreams(){
   const videos = document.querySelectorAll('.secVideo');
   videos.forEach(video => {
     const videoId = video.id;
@@ -141,19 +157,37 @@ onMounted(() => {
       streaming[videoId] = true
     });
   });
+}
 
-})
+function removeEventListenerToStreams(){
+  const videos = document.querySelectorAll('.secVideo');
+  videos.forEach(video => {
+    const videoId = video.id;
+    video.removeEventListener('play', () => {
+      console.log("  --> " + videoId + " is playing");
+      streaming[videoId] = true
+    });
 
-//List of streaming cams on Cameras page
-function getStreamingCams() {
-  for (let index = 0; index < streams.length; index++) {
-    const element = streams[index];
-    //console.log(" element "+JSON.stringify(element))
-    if (element.show == true) {
-      streaming[element.cam] = false
-    }
+    video.removeEventListener('pause', () => {
+      console.log("  --> " + videoId + " is paused");
+      streaming[videoId] = false
+    });
 
-  }
+    video.removeEventListener('ended', () => {
+      console.log("  --> " + videoId + " has ended");
+      streaming[videoId] = false
+    });
+
+    video.removeEventListener('waiting', () => {
+      console.log("  --> " + videoId + " is on hold (buffering)");
+      streaming[videoId] = false
+    });
+
+    video.removeEventListener('playing', () => {
+      //console.log("  --> "+videoId+" is playing after buffering");
+      streaming[videoId] = true
+    });
+  });
 }
 
 /* SETTINGS */
@@ -400,30 +434,37 @@ function stopStreams() {
 
 <template>
   <div class="container-fluid">
-    <ul class="nav nav-underline justify-content-center" id="myTab" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button id="cameras" :class="[activeTab == 'cameras' ? 'active' : '', 'nav-link']" data-bs-toggle="tab"
-          data-bs-target="#cameras-nav" type="button" role="tab" aria-controls="home-tab-pane"
-          aria-selected="true">Cameras (<i class="uil uil-sync fs-6"></i>)</button>
-      </li>
+  <nav class="navbar fixed-top navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid justify-content-center">
+      <ul class="nav nav-underline" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button id="cameras" :class="[activeTab == 'cameras' ? 'active' : '', 'nav-link fs-5']" data-bs-toggle="tab"
+            data-bs-target="#cameras-nav" type="button" role="tab" aria-controls="home-tab-pane"
+            aria-selected="true">Cameras (<i class="uil uil-sync fs-6"></i>)</button>
+        </li>
 
-      <li class="nav-item" role="presentation">
-        <button id="recordings" :class="[activeTab == 'recordings' ? 'active' : '', 'nav-link']" data-bs-toggle="tab"
-          data-bs-target="#recordings-nav" type="button" role="tab" aria-controls="profile-tab-pane"
-          aria-selected="false">Recordings</button>
-      </li>
+        <li class="nav-item" role="presentation">
+          <button id="recordings" :class="[activeTab == 'recordings' ? 'active' : '', 'nav-link fs-5']" data-bs-toggle="tab"
+            data-bs-target="#recordings-nav" type="button" role="tab" aria-controls="profile-tab-pane"
+            aria-selected="false">Recordings</button>
+        </li>
 
-      <li class="nav-item" role="presentation">
-        <button id="settings" :class="[activeTab == 'settings' ? 'active' : '', 'nav-link']" data-bs-toggle="tab"
-          data-bs-target="#settings-nav" type="button" role="tab" aria-controls="contact-tab-pane"
-          aria-selected="false">Settings</button>
-      </li>
+        <li class="nav-item" role="presentation">
+          <button id="settings" :class="[activeTab == 'settings' ? 'active' : '', 'nav-link fs-5']" data-bs-toggle="tab"
+            data-bs-target="#settings-nav" type="button" role="tab" aria-controls="contact-tab-pane"
+            aria-selected="false">Settings</button>
+        </li>
 
-    </ul>
+      </ul>
+    </div>
+  </nav>
+  
+  
+  
     <div class="tab-content" id="myTabContent">
 
       <!--************************** CAMERAS **************************-->
-      <div :class="[activeTab == 'cameras' ? 'show active' : '', 'tab-pane', 'fade']" id="cameras-nav" role="tabpanel"
+      <div :class="[activeTab == 'cameras' ? 'show active' : '', 'tab-pane fade']" id="cameras-nav" role="tabpanel"
         aria-labelledby="cameras-tab" tabindex="0">
         <div class="row">
           <div v-if="frigateURL == null || (streams != null && streams.length == 0)"
@@ -431,7 +472,7 @@ function stopStreams() {
             Configure your Frigate URL and cameras in Settings
           </div>
           <div v-else>
-            <div class="row mt-2">
+            <div class="row">
               <div v-for="stream in streams.filter(element => element.show == true)" class="col-12 col-sm-6">
                 <div class="video-container">
                   <video :id="stream.cam"
@@ -440,8 +481,8 @@ function stopStreams() {
                     <source :src="videoUrl(stream.cam)">
                   </video>
                   <button class="overlay-button btn btn-link" v-on:click="refreshStreams(stream.cam)"><i
-                  class="uil uil-sync fs-6"></i></button>
-                </div>  
+                      class="uil uil-sync fs-6"></i></button>
+                </div>
               </div>
             </div>
           </div>
@@ -449,30 +490,31 @@ function stopStreams() {
       </div>
 
       <!--************************** RECORDINGS **************************-->
-      <div :class="[activeTab == 'recordings' ? 'show active' : '', 'tab-pane', 'fade']" id="recordings-nav"
-        role="tabpanel" aria-labelledby="recordings-tab" tabindex="0">
+      <div :class="[activeTab == 'recordings' ? 'show active' : '', 'tab-pane fade']" id="recordings-nav" role="tabpanel"
+        aria-labelledby="recordings-tab" tabindex="0">
         <div v-if="loadingRecordings" class="d-flex justify-content-center mt-4">
           <div class="spinner-border" role="status">
             <span class="visually-hidden"></span>
           </div>
         </div>
         <div v-else>
-          <div v-if="recordings.start_day != null && recordings.end_day != null" class="row mt-3">
-            <div class="form-floating col-5">
+          <div v-if="recordings.start_day != null && recordings.end_day != null" class="row mt-3 container-fluid">
+            
+            <div class="form-floating col-12 col-lg-6 mb-2">
               <input class="form-control" type="datetime-local" :min="recordings.start_day + 'T00:00:00'"
                 :max="recordings.end_day + 'T23:59:59'" v-on:input="inputStartTime($event.target.value)">
               <label for="floatingSelect">Select Start Date&Time</label>
             </div>
 
-            <div class="form-floating col-5">
+            <div class="form-floating col-12 col-lg-6 mb-2">
               <input class="form-control" type="datetime-local" :min="recordings.start_day + 'T00:00:00'"
                 :max="recordings.end_day + 'T23:59:59'" v-on:input="inputEndTime($event.target.value)">
               <label for="floatingSelect">Select End Date&Time</label>
             </div>
+            
+            <button v-on:click="showRecordings" type="button" class="btn btn-success btn-block">Show</button>
 
-            <div class="col-2">
-              <button v-on:click="showRecordings" type="button" class="btn btn-success">Show</button>
-            </div>
+
 
             <!--<video id="video" width="100%" height="100%" controls="" autoplay muted playsinline name="media"></video>-->
           </div>
@@ -486,31 +528,37 @@ function stopStreams() {
       </div>
 
       <!--************************** SETTINGS **************************-->
-      <div :class="[activeTab == 'settings' ? 'show active' : '', 'tab-pane', 'fade']" id="settings-nav" role="tabpanel"
-        aria-labelledby="settings-tab" tabindex="0">
-        <div class="row justify-content-md-center mt-5">
-          <div class="col-6">
-            <div class="row">
-              <div class="col">
+      <div :class="[activeTab == 'settings' ? 'show active' : '', 'tab-pane fade container-fluid']" id="settings-nav"
+        role="tabpanel" aria-labelledby="settings-tab" tabindex="0">
+        <div class="row justify-content-md-center">
+          <div class="col-12 col-lg-6">
+            <div class="row align-items-center">
+              <div class="col-6">
                 FriCams v{{ version }}
               </div>
+              <div class="col-6 text-end">
+                <button type="button" class="btn btn-light mt-2" v-on:click="reloadPage">Reload App</button>
+              </div>
             </div>
-            <button type="button" class="btn btn-light mt-2" v-on:click="reloadPage">Reload App</button>
-            <div class="row mt-2">
+            
+            <!-- Frigate URL -->
+            <div class="row mt-3 align-items-center">
               <hr>
               <div class="col-4">Frigate URL
               </div>
               <div class="col-8">
-                <div class="input-group mb-3">
+                <div class="input-group">
                   <input type="text" class="form-control" v-model="frigateURL">
                 </div>
               </div>
+              <div class="row justify-content-center">
+              </div>
+              <button type="button" class="btn btn-success mt-2" v-on:click="saveFrigateURL">Save</button>
             </div>
-            <button type="button" class="btn btn-success mt-2" v-on:click="saveFrigateURL">Save</button>
             <div v-if="settingsError != null" class="text-danger mt-1"><i class="uil uil-exclamation-triangle"></i> {{
               settingsError }}</div>
 
-
+            <!-- List of Streams -->
             <div v-if="streams != null && streams.length > 0">
               <hr>
               <h2>Streams</h2>
@@ -525,11 +573,14 @@ function stopStreams() {
                   </div>
                 </div>
               </div>
-              <button type="button" class="btn btn-success mt-2" v-on:click="saveStreams">Save</button>
-              <div v-if="settingsError != null" class="text-danger mt-1"><i class="uil uil-exclamation-triangle"></i> {{
-                settingsError }}</div>
+              <div class="row">
+                <button type="button" class="btn btn-success mt-2" v-on:click="saveStreams">Save</button>
+                <div v-if="settingsError != null" class="text-danger mt-1"><i class="uil uil-exclamation-triangle"></i> {{
+                  settingsError }}</div>
+              </div>
             </div>
 
+            <!-- Stream Source -->
             <div v-if="streams != null && streams.length > 0">
               <hr>
               <h2>Stream Source</h2>
@@ -541,7 +592,9 @@ function stopStreams() {
                   {{ item.label }}
                 </div>
               </div>
-              <button type="button" class="btn btn-success mt-2" v-on:click="saveSource">Save</button>
+              <div class="row">
+                <button type="button" class="btn btn-success mt-2" v-on:click="saveSource">Save</button>
+              </div>
             </div>
 
           </div>

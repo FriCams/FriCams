@@ -54,3 +54,12 @@
 .overlay-button:hover {
   color: rgba(255, 255, 255, 1);
 }
+
+.tab-content{
+  margin-top: 5em;
+  margin-bottom: 2em;
+}
+
+.navbar{
+  background-color: rgb(26, 26, 26) !important;
+}

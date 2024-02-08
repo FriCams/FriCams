@@ -12,6 +12,7 @@ node_modules
 coverage
 *.local
 *.pem
+dist
 
 # Editor directories and files
 .vscode/*

@@ -85,7 +85,7 @@ onBeforeMount(async () => {
     await getConfig().catch(error => {
       settingsError.value = error
     })
-    await getRecordings()
+    getRecordings()
   }
 
 
@@ -297,6 +297,7 @@ async function saveFrigateURL() {
   await getConfig().catch(error => {
     settingsError.value = error
   })
+  getRecordings()
 }
 
 function saveStreams() {
@@ -342,8 +343,6 @@ function showRecordings() {
         alert('HLS is not supported in your browser.');
       }
     }
-
-    console.log(" -> recordingURL " + recordingURL.value)
   }
 }
 
@@ -405,7 +404,7 @@ function stopStreams() {
       <li class="nav-item" role="presentation">
         <button id="cameras" :class="[activeTab == 'cameras' ? 'active' : '', 'nav-link']" data-bs-toggle="tab"
           data-bs-target="#cameras-nav" type="button" role="tab" aria-controls="home-tab-pane"
-          aria-selected="true">Cameras</button>
+          aria-selected="true">Cameras (<i class="uil uil-sync fs-6"></i>)</button>
       </li>
 
       <li class="nav-item" role="presentation">

@@ -3,7 +3,7 @@ import { onBeforeMount, onMounted, reactive, ref } from 'vue';
 import Hls from 'hls.js'
 import { version } from '../../package.json';
 
-let activeTab = ref("settings")
+let activeTab = ref("cameras")
 
 let frigateURL = ref(null)
 let frigateConfig = {}
@@ -96,17 +96,18 @@ onBeforeMount(async () => {
 })
 
 onMounted(() => {
-  if (activeTab.value == "cameras") {
-    //getStreams()
-  }
   const tabs = [].slice.call(document.querySelectorAll('button[data-bs-toggle="tab"]'))
   tabs.forEach((tabEl) => {
     tabEl.addEventListener('shown.bs.tab', event => {
       activeTab.value = event.target.getAttribute('id')
-      if (activeTab.value == "cameras") {
-        refreshStreams(0)
-      } else {
+      if (activeTab.value != "cameras") {
         stopStreams()
+      }
+    })
+
+    tabEl.addEventListener('click', event => {
+      if (event.target.getAttribute('id') == "cameras"){
+        refreshStreams(0)
       }
     })
   })
@@ -116,22 +117,22 @@ onMounted(() => {
   videos.forEach(video => {
     const videoId = video.id;
     video.addEventListener('play', () => {
-      console.log("  --> "+videoId+" is playing");
+      console.log("  --> " + videoId + " is playing");
       streaming[videoId] = true
     });
 
     video.addEventListener('pause', () => {
-      console.log("  --> "+videoId+" is paused");
+      console.log("  --> " + videoId + " is paused");
       streaming[videoId] = false
     });
 
     video.addEventListener('ended', () => {
-      console.log("  --> "+videoId+" has ended");
+      console.log("  --> " + videoId + " has ended");
       streaming[videoId] = false
     });
 
     video.addEventListener('waiting', () => {
-      console.log("  --> "+videoId+" is on hold (buffering)");
+      console.log("  --> " + videoId + " is on hold (buffering)");
       streaming[videoId] = false
     });
 
@@ -156,7 +157,7 @@ function getStreamingCams() {
 }
 
 /* SETTINGS */
-function reloadPage(){
+function reloadPage() {
   location.reload()
 }
 
@@ -365,7 +366,7 @@ function refreshStreams(param) {
     }
     //location.reload()
   } else {
-    console.log(" -> Refreshing "+param)
+    console.log(" -> Refreshing " + param)
     streaming[param] = false
     let video = document.getElementById(param);
 
@@ -431,24 +432,17 @@ function stopStreams() {
             Configure your Frigate URL and cameras in Settings
           </div>
           <div v-else>
-            <div class="col-12 mt-2 mb-2">
-              <button v-on:click="refreshStreams(0)" class="btn btn-outline-light"
-                style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;"><i
-                  class="uil uil-sync fs-6"></i> All</button>
-              <span v-for="stream in streams.filter(element => element.show == true)">
-                <button v-on:click="refreshStreams(stream.cam)" class="ms-2 btn btn-outline-light"
-                  style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;"><i
-                    class="uil uil-sync fs-6"></i> {{ stream.cam }}</button>
-              </span>
-            </div>
-            <div class="row">
+            <div class="row mt-2">
               <div v-for="stream in streams.filter(element => element.show == true)" class="col-12 col-sm-6">
-
-                <video :id="stream.cam"
-                  :class="[streaming[stream.cam] === false ? 'redBorder' : 'greenBorder', 'secVideo']" width="100%"
-                  height="100%" controls="" autoplay muted playsinline name="media">
-                  <source :src="videoUrl(stream.cam)">
-                </video>
+                <div class="video-container">
+                  <video :id="stream.cam"
+                    :class="[streaming[stream.cam] === false ? 'redBorder' : 'greenBorder', 'secVideo']" width="100%"
+                    height="100%" controls="" autoplay muted playsinline name="media">
+                    <source :src="videoUrl(stream.cam)">
+                  </video>
+                  <button class="overlay-button btn btn-link" v-on:click="refreshStreams(stream.cam)"><i
+                  class="uil uil-sync fs-6"></i></button>
+                </div>  
               </div>
             </div>
           </div>
@@ -499,10 +493,10 @@ function stopStreams() {
           <div class="col-6">
             <div class="row">
               <div class="col">
-              FriCams v{{ version }}
+                FriCams v{{ version }}
+              </div>
             </div>
-          </div>
-          <button type="button" class="btn btn-light mt-2" v-on:click="reloadPage">Reload Page</button>
+            <button type="button" class="btn btn-light mt-2" v-on:click="reloadPage">Reload App</button>
             <div class="row mt-2">
               <hr>
               <div class="col-4">Frigate URL

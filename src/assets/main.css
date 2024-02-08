@@ -31,3 +31,26 @@
   border-right: 10px solid transparent;
   border-bottom: 10px solid green;
 }
+
+
+.video-container {
+  position: relative;
+}
+
+.video-container video {
+  width: 100%;
+  height: auto;
+}
+
+.overlay-button {
+  position: absolute;
+  bottom: 0%;
+  left: 50%;
+  color: rgba(255, 255, 255, 0.7);
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+.overlay-button:hover {
+  color: rgba(255, 255, 255, 1);
+}

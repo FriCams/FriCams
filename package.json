@@ -1,6 +1,6 @@
 {
   "name": "fricams",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "FriCams is a Progressive Web App (PWA) for Frigate camera users.",
   "main": "index.js",
   "scripts": {

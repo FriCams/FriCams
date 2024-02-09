@@ -4,6 +4,7 @@
   "description": "FriCams is a Progressive Web App (PWA) for Frigate camera users.",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "dev": "NODE_ENV='dev' node index.js",
     "prod": "node index.js",
     "build": "vite build",

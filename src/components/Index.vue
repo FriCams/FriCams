@@ -434,11 +434,11 @@ function stopStreams() {
 
 <template>
   <div class="container-fluid">
-  <nav class="navbar fixed-top navbar-expand-lg bg-body-tertiary">
+  <nav class="navbar fixed-top navbar-expand-lg">
     <div class="container-fluid justify-content-center">
       <ul class="nav nav-underline" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
-          <button id="cameras" :class="[activeTab == 'cameras' ? 'active' : '', 'nav-link fs-5']" data-bs-toggle="tab"
+          <button id="cameras" :class="[activeTab == 'cameras' ? 'active' : '', 'nav-link fs-4']" data-bs-toggle="tab"
             data-bs-target="#cameras-nav" type="button" role="tab" aria-controls="home-tab-pane"
             aria-selected="true">Cameras (<i class="uil uil-sync fs-6"></i>)</button>
         </li>

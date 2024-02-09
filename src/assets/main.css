@@ -60,6 +60,8 @@
   margin-bottom: 2em;
 }
 
+
 .navbar{
-  background-color: rgb(26, 26, 26) !important;
+  background-color: black !important;
+  padding-bottom: 1em !important;
 }

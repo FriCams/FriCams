@@ -18,11 +18,12 @@ let recordings = reactive({
 let showingRecordings = ref(false)
 
 let settingsError = ref(null)
+let streamErrors = reactive([])
 
 let selectedRecordingStartTime = ref(null)
 let selectedRecordingEndTime = ref(null)
 let selectedSource = ref(null)
-let recordingURL = ref(null)
+let streamsUpdated = ref(false)
 
 
 let streamSources = [
@@ -107,7 +108,13 @@ onMounted(() => {
 
     tabEl.addEventListener('click', event => {
       if (event.target.getAttribute('id') == "cameras") {
-        refreshStreams(0)
+        if (streamsUpdated.value == true) {
+          reloadPage()
+        } else {
+          streamErrors = []
+          refreshStreams(0)
+        }
+
       }
     })
   })
@@ -128,10 +135,20 @@ function getStreamingCams() {
   }
 }
 
-function addEventListenerToStreams(){
+function addEventListenerToStreams() {
   const videos = document.querySelectorAll('.secVideo');
   videos.forEach(video => {
     const videoId = video.id;
+    video.addEventListener('error', (event) => {
+      console.log("  --> " + videoId + " error: " + event.target.error.message);
+      let temp = {}
+      temp.cam = videoId
+      temp.error = event.target.error.message
+      streamErrors.push(temp)
+      //alert(videoId + " error: "+video.error);
+      streaming[videoId] = true
+    });
+
     video.addEventListener('play', () => {
       console.log("  --> " + videoId + " is playing");
       streaming[videoId] = true
@@ -159,36 +176,6 @@ function addEventListenerToStreams(){
   });
 }
 
-function removeEventListenerToStreams(){
-  const videos = document.querySelectorAll('.secVideo');
-  videos.forEach(video => {
-    const videoId = video.id;
-    video.removeEventListener('play', () => {
-      console.log("  --> " + videoId + " is playing");
-      streaming[videoId] = true
-    });
-
-    video.removeEventListener('pause', () => {
-      console.log("  --> " + videoId + " is paused");
-      streaming[videoId] = false
-    });
-
-    video.removeEventListener('ended', () => {
-      console.log("  --> " + videoId + " has ended");
-      streaming[videoId] = false
-    });
-
-    video.removeEventListener('waiting', () => {
-      console.log("  --> " + videoId + " is on hold (buffering)");
-      streaming[videoId] = false
-    });
-
-    video.removeEventListener('playing', () => {
-      //console.log("  --> "+videoId+" is playing after buffering");
-      streaming[videoId] = true
-    });
-  });
-}
 
 /* SETTINGS */
 function reloadPage() {
@@ -338,6 +325,7 @@ function saveStreams() {
   //console.log("-> Streams " + JSON.stringify(streams))
   localStorage.setItem('streams', JSON.stringify(streams));
   getStreamingCams()
+  streamsUpdated.value = true
 }
 
 function saveSource() {
@@ -384,6 +372,7 @@ function showRecordings() {
 function refreshStreams(param) {
   if (param == 0) {
     console.log(" -> Refreshing all streams")
+    streamErrors = []
     let filteredStreams = streams.filter(element => element.show == true)
     for (let index = 0; index < filteredStreams.length; index++) {
       const element = filteredStreams[index];
@@ -400,6 +389,16 @@ function refreshStreams(param) {
     //location.reload()
   } else {
     console.log(" -> Refreshing " + param)
+    let streamErrorIndex = streamErrors.findIndex(element => element.cam == param)
+    if (streamErrorIndex != -1) {
+      if (streamErrors.length == 1) {
+        streamErrors = []
+      } else {
+        streamErrors.splice(streamErrorIndex, streamErrorIndex)
+      }
+
+      //console.log("streamErrors " + JSON.stringify(streamErrors))
+    }
     streaming[param] = false
     let video = document.getElementById(param);
 
@@ -434,33 +433,33 @@ function stopStreams() {
 
 <template>
   <div class="container-fluid">
-  <nav class="navbar fixed-top navbar-expand-lg">
-    <div class="container-fluid justify-content-center">
-      <ul class="nav nav-underline" id="myTab" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button id="cameras" :class="[activeTab == 'cameras' ? 'active' : '', 'nav-link fs-4']" data-bs-toggle="tab"
-            data-bs-target="#cameras-nav" type="button" role="tab" aria-controls="home-tab-pane"
-            aria-selected="true">Cameras (<i class="uil uil-sync fs-6"></i>)</button>
-        </li>
+    <nav class="navbar fixed-top navbar-expand-lg">
+      <div class="container-fluid justify-content-center">
+        <ul class="nav nav-underline" id="myTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button id="cameras" :class="[activeTab == 'cameras' ? 'active' : '', 'nav-link fs-5']" data-bs-toggle="tab"
+              data-bs-target="#cameras-nav" type="button" role="tab" aria-controls="home-tab-pane"
+              aria-selected="true">Cameras (<i class="uil uil-sync fs-6"></i>)</button>
+          </li>
 
-        <li class="nav-item" role="presentation">
-          <button id="recordings" :class="[activeTab == 'recordings' ? 'active' : '', 'nav-link fs-5']" data-bs-toggle="tab"
-            data-bs-target="#recordings-nav" type="button" role="tab" aria-controls="profile-tab-pane"
-            aria-selected="false">Recordings</button>
-        </li>
+          <li class="nav-item" role="presentation">
+            <button id="recordings" :class="[activeTab == 'recordings' ? 'active' : '', 'nav-link fs-5']"
+              data-bs-toggle="tab" data-bs-target="#recordings-nav" type="button" role="tab"
+              aria-controls="profile-tab-pane" aria-selected="false">Recordings</button>
+          </li>
 
-        <li class="nav-item" role="presentation">
-          <button id="settings" :class="[activeTab == 'settings' ? 'active' : '', 'nav-link fs-5']" data-bs-toggle="tab"
-            data-bs-target="#settings-nav" type="button" role="tab" aria-controls="contact-tab-pane"
-            aria-selected="false">Settings</button>
-        </li>
+          <li class="nav-item" role="presentation">
+            <button id="settings" :class="[activeTab == 'settings' ? 'active' : '', 'nav-link fs-5']" data-bs-toggle="tab"
+              data-bs-target="#settings-nav" type="button" role="tab" aria-controls="contact-tab-pane"
+              aria-selected="false">Settings</button>
+          </li>
 
-      </ul>
-    </div>
-  </nav>
-  
-  
-  
+        </ul>
+      </div>
+    </nav>
+
+
+
     <div class="tab-content" id="myTabContent">
 
       <!--************************** CAMERAS **************************-->
@@ -474,7 +473,12 @@ function stopStreams() {
           <div v-else>
             <div class="row">
               <div v-for="stream in streams.filter(element => element.show == true)" class="col-12 col-sm-6">
-                <div class="video-container">
+                <div class="text-danger" v-if="streamErrors.find(element => element.cam == stream.cam)">
+                  <p>Stream {{ stream.cam }} error:</p>
+                  <p>{{ streamErrors.find(element => element.cam == stream.cam).error }}</p>
+                  <button class="btn" v-on:click="refreshStreams(stream.cam)"><i class="uil uil-sync fs-6"></i></button>
+                </div>
+                <div v-show="streamErrors.findIndex(element => element.cam == stream.cam) < 0" class="video-container">
                   <video :id="stream.cam"
                     :class="[streaming[stream.cam] === false ? 'redBorder' : 'greenBorder', 'secVideo']" width="100%"
                     height="100%" controls="" autoplay muted playsinline name="media">
@@ -499,7 +503,7 @@ function stopStreams() {
         </div>
         <div v-else>
           <div v-if="recordings.start_day != null && recordings.end_day != null" class="row mt-3 container-fluid">
-            
+
             <div class="form-floating col-12 col-lg-6 mb-2">
               <input class="form-control" type="datetime-local" :min="recordings.start_day + 'T00:00:00'"
                 :max="recordings.end_day + 'T23:59:59'" v-on:input="inputStartTime($event.target.value)">
@@ -511,7 +515,7 @@ function stopStreams() {
                 :max="recordings.end_day + 'T23:59:59'" v-on:input="inputEndTime($event.target.value)">
               <label for="floatingSelect">Select End Date&Time</label>
             </div>
-            
+
             <button v-on:click="showRecordings" type="button" class="btn btn-success btn-block">Show</button>
 
 
@@ -540,7 +544,7 @@ function stopStreams() {
                 <button type="button" class="btn btn-light mt-2" v-on:click="reloadPage">Reload App</button>
               </div>
             </div>
-            
+
             <!-- Frigate URL -->
             <div class="row mt-3 align-items-center">
               <hr>

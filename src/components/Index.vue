@@ -66,7 +66,10 @@ let streamSources = [
 ]
 
 onBeforeMount(async () => {
-
+  if (document.visibilityState === 'visible') {
+    refreshStreams(0)
+  } else {
+  }
   /* Setting local storage / values */
   let localFrigateUrl = localStorage.getItem('frigateURL')
   let localStreams = JSON.parse(localStorage.getItem('streams'))
@@ -97,6 +100,7 @@ onBeforeMount(async () => {
 })
 
 onMounted(() => {
+  
   const tabs = [].slice.call(document.querySelectorAll('button[data-bs-toggle="tab"]'))
   tabs.forEach((tabEl) => {
     tabEl.addEventListener('shown.bs.tab', event => {

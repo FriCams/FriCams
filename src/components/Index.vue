@@ -65,11 +65,21 @@ let streamSources = [
 
 ]
 
-onBeforeMount(async () => {
-  if (document.visibilityState === 'visible') {
-    refreshStreams(0)
-  } else {
+document.addEventListener("visibilitychange", () => {
+  const state = document.visibilityState;
+  if (state === "hidden") {
+    console.log(" -> Hidden")
+    stopStreams()
   }
+
+  if (state === "visible") {
+    console.log(" -> Visible")
+    refreshStreams(0)
+  }
+});
+
+onBeforeMount(async () => {
+ 
   /* Setting local storage / values */
   let localFrigateUrl = localStorage.getItem('frigateURL')
   let localStreams = JSON.parse(localStorage.getItem('streams'))
